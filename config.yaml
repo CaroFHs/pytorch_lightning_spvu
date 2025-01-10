@@ -1,0 +1,81 @@
+# config_gan.yaml
+model:
+  name: "spvugan"
+  input_size: 512
+  output_size: 512
+  dropout_rate: 0.2
+  input_nc: 3
+  output_nc: 1
+  trans_direction: 'AtoB' # AtoB, BtoA
+  gan_type: 'lsgan' # lsgan, vanilla
+
+training:
+
+  optimizer_type: 'adam' # 'rmsprop', 'adam', 'sgd'
+  lr: 0.00001
+  b1: 0.9
+  b2: 0.999
+
+  n_critic: 2
+  lambda_gp: 10
+
+  batch_size: 12
+  epochs: 100
+  nThreads: 16
+
+loss:
+## loss_weight, if weight==0, the loss will not be used
+  L1_loss: 5
+  SSIM_loss: 0
+  mSSIM_loss: 0
+  vgg_loss: 0.5
+  hwt_loss: 0
+ganloss:
+  Gganloss_weight: 1.0
+  Dganloss_weight: 10
+
+data:
+
+  ## 数据集图像文件路径
+  dataroot: '/media/dg/D/DATASET/AVIID/AVIID1-paired-8/AVIID1_vis_ir' # AVIID1
+  # dataroot: '/media/dg/D/DATASET/VEDAI' # VEDAI
+  # dataroot: '/media/dg/D/DATASET/KAIST/VIDEO_SETS' # KAIST
+
+  ## 数据集加载路径（原text_path）：aviid1，vedai，kaist
+  dataset_files: '/media/dg/D/Py_Project/pytorch_lightning_spvugan/dataset/dataset_files/aviid1' # VEDAI
+
+  dataset_mode: 'AVIID1' # 数据集模式，'AVIID1','VEDAI','KAIST'
+  resize_or_crop: 'resize_and_crop'
+  shuffle: True
+  load_size: 512 # 缩放图像至此大小
+  fine_size: 512 # 裁剪图像至此大小
+  resize_or_crop:  'resize_and_crop'
+
+metrics:
+  L1:     True
+  SSIM:   True
+  mSSIM:  True
+  PSNR:   True
+  LPIPS:  True
+
+Generator:
+## base
+  which_model_netG: 'unet_vit'
+  image_shape: [3, 512, 512]
+## vit
+  vit_activ: 'leakyrelu' # leakyrelu, gelu, relu, sigmoid, tanh
+  vit_norm: 'layer'
+  vit_use_ffn: True # 可选（True, False）
+## unet
+  input_layer_output: 48 # 原ngf和ndf（第一层卷积输入通道数），48
+  unet_activ: 'leakyrelu'
+  unet_norm: 'instance'
+  unet_downsample: 'conv' # 可选（conv, hwd, wtfd_）
+  decoder_use_FHAB: False 
+  encoder_use_FFDF: False
+  unet_use_dropout: False
+
+Discriminator:
+  which_model_netD: 'sed_p' # unetdiscriminator, pixel, sed_p, sed_u
+
+
