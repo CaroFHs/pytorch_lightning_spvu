@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/path/to/vugan')  # 替换为实际路径
+
 import torch
 import torch.nn as nn
 from torch.nn.utils import spectral_norm
@@ -6,7 +9,7 @@ import functools
 import math
 import clip
 from clip.model import ModifiedResNet
-from vugan.modules.module_attention import ModifiedSpatialTransformer
+# from vugan.modules.module_attention import ModifiedSpatialTransformer
 
 
 
@@ -17,7 +20,7 @@ class CLIP_Semantic_extractor(ModifiedResNet):
         ckpt = 'RN50' if path is None else path
 
         if pretrained:
-            model, _ = clip.load(ckpt, device='cpu') # 加载CLIP 模型，（另一个是转换（transform）函数）
+            model, preprocess = clip.load(ckpt, device='cpu') # 加载CLIP 模型，（另一个是转换（transform）函数）
         
         self.load_state_dict(model.visual.state_dict()) # 加载预训练模型的视觉编码器部分的权重
 
@@ -40,9 +43,56 @@ class CLIP_Semantic_extractor(ModifiedResNet):
         x = x.type(self.conv1.weight.dtype) # 令输入张量的数据类型与第一个卷积层的权重相同
         return self.model(x)
 
+
+# 定义 InfoNCE 损失函数
+class InfoNCELoss(nn.Module):
+    def __init__(self, temperature=0.07):
+        super(InfoNCELoss, self).__init__()
+        self.temperature = temperature
+
+    def forward(self, encoded_generated, encoded_real):
+
+        """
+        计算InfoNCE损失。
+        
+        参数:
+        - encoded_generated: 生成图像的特征向量，形状为 (batch_size, feature_dim)
+        - encoded_real: 真实图像的特征向量，形状为 (batch_size, feature_dim)
+        - temperature: 温度参数，默认值为0.07
+        
+        返回:
+        - loss: InfoNCE损失值
+        """
+        # 对特征进行L2归一化
+        encoded_generated = F.normalize(encoded_generated, dim=-1)
+        encoded_real = F.normalize(encoded_real, dim=-1)
+
+        batch_size = encoded_generated.size(0)
+        feature_dim = encoded_generated.size(-1)
+
+        # 构建正样本对矩阵：每个生成图像与对应的真实图像之间的相似度
+        logits_pos = torch.einsum('bd,bd->b', [encoded_generated, encoded_real]).view(-1, 1)
+
+        # 构建负样本对矩阵：每个生成图像与所有其他真实图像之间的相似度
+        # 注意避免将自身作为负样本，因此需要构造一个mask来排除这些项
+        mask = ~torch.eye(batch_size, device=encoded_generated.device).bool()
+        logits_neg = torch.einsum('bd,cd->bc', [encoded_generated, encoded_real])
+        logits_neg = logits_neg[mask].view(batch_size, -1)
+
+        # 合并正样本和负样本的logits，并应用温度参数
+        logits = torch.cat([logits_pos, logits_neg], dim=1) / self.temperature
+
+        # 标签是全0向量，表示每个样本对应的正样本在logits中的位置
+        labels = torch.zeros(batch_size, dtype=torch.long, device=encoded_generated.device)
+
+        # 使用交叉熵损失函数计算InfoNCE损失
+        loss = F.cross_entropy(logits, labels)
+
+        return loss
+
 if __name__ == '__main__':
     clipmodel = CLIP_Semantic_extractor()
-    x = torch.randn(4,1,128,128)
+    x = torch.randn(4,3,256,256)
     y = clipmodel(x)
     print(y.size())
     print(y)

@@ -43,7 +43,7 @@ class CLIP_Semantic_extractor(ModifiedResNet):
 
 if __name__ == '__main__':
     clipmodel = CLIP_Semantic_extractor()
-    x = torch.randn(4,1,128,128)
+    x = torch.randn(4,1,224,224)
     y = clipmodel(x)
     print(y.size())
     print(y)
