@@ -378,7 +378,7 @@ def main() -> None:
 
     # 3 INIT TRAINER WITH LOGGER
     trainer = Trainer(
-                # logger=logger,
+                logger=logger,
                 accelerator= 'cuda',
                 devices='auto',
                 max_epochs=training_config['epochs'], # 设置期望的训练轮数
@@ -386,12 +386,12 @@ def main() -> None:
                 check_val_every_n_epoch=1,  # 在每个 epoch 后验证一次
     )
 
-    # # 3 START TRAINING
-    # trainer.fit(model)
+    # 3 START TRAINING
+    trainer.fit(model)
 
-    # 4 TEST THE MODEL ON TEST SET
-    trainer.test(model, dataloaders=model.test_dataloader(),
-                 ckpt_path='log_spvugan/AVIID1/version_0/checkpoints/epoch=99-step=6600.ckpt')  # 测试模型
+    # # 4 TEST THE MODEL ON TEST SET
+    # trainer.test(model, dataloaders=model.test_dataloader(),
+    #              ckpt_path='log_spvugan/AVIID1/version_0/checkpoints/epoch=99-step=6600.ckpt')  # 测试模型
 
 
 if __name__ == '__main__':
