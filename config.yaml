@@ -30,6 +30,7 @@ loss:
   mSSIM_loss: 0
   vgg_loss: 0.5
   hwt_loss: 0
+  infoNCE: 5
 ganloss:
   Gganloss_weight: 1.0
   Dganloss_weight: 10
@@ -76,6 +77,6 @@ Generator:
   unet_use_dropout: False
 
 Discriminator:
-  which_model_netD: 'sed_p' # unetdiscriminator, pixel, sed_p, sed_u
+  which_model_netD: 'unetdiscriminator' # unetdiscriminator, pixel, sed_p, sed_u
 
 

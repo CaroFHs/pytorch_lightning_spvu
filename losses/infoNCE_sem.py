@@ -10,6 +10,7 @@ import math
 import clip
 from clip.model import ModifiedResNet
 # from vugan.modules.module_attention import ModifiedSpatialTransformer
+import torchvision.transforms as T
 
 
 
@@ -39,6 +40,8 @@ class CLIP_Semantic_extractor(ModifiedResNet):
         del model
 
     def forward(self, x):
+        transform = T.Resize((224, 224)) # 输入图像resize
+        x  = transform(x)
         x = (x - self.mean) / self.std # 归一化输入
         x = x.type(self.conv1.weight.dtype) # 令输入张量的数据类型与第一个卷积层的权重相同
         return self.model(x)
@@ -92,7 +95,12 @@ class InfoNCELoss(nn.Module):
 
 if __name__ == '__main__':
     clipmodel = CLIP_Semantic_extractor()
-    x = torch.randn(4,3,256,256)
-    y = clipmodel(x)
+    infonce = InfoNCELoss()
+    xr = torch.randn(4,1,256,256)
+    xg = torch.randn(4,1,256,256)
+    xr_s = clipmodel(xr)
+    xg_s = clipmodel(xg)
+    y = infonce(xg_s, xr_s)
+
     print(y.size())
     print(y)

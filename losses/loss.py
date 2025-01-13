@@ -4,7 +4,7 @@ from torch import nn
 from losses.ssim import MSSIM, SSIM
 from losses.vggLoss import  VGGPerceptualLoss
 from losses.freq_loss import  hwt_loss
-
+from losses.infoNCE_sem import CLIP_Semantic_extractor, InfoNCELoss
 import yaml
 from pytorch_lightning.core import LightningModule
 from typing import Dict, Any, Optional
@@ -56,7 +56,16 @@ class HWTLoss(nn.Module):
     def forward(self, source, fake, real):
         return self.hw_loss(fake, real)
     
-
+class infoNCE(nn.Module):
+    def __init__(self):
+        super(infoNCE, self).__init__()
+        self.clipmodel = CLIP_Semantic_extractor()
+        self.infonce = InfoNCELoss()
+    def forward(self, source, fake, real):
+        fake_sem = self.clipmodel(fake)
+        real_sem = self.clipmodel(real)
+        return self.infonce(fake_sem, real_sem)
+    
 class LossManager:
     def __init__(self, config_path: str):
         with open(config_path, 'r') as file:
@@ -69,6 +78,7 @@ class LossManager:
             "mSSIM_loss": MSSIMLoss(),
             "vgg_loss": VGGLoss(),
             "hwt_loss": HWTLoss(),
+            "infoNCE": infoNCE(),
             # 添加其他自定义损失函数
         }
 

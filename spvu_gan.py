@@ -374,7 +374,7 @@ def main() -> None:
     model = GAN(n_critic=training_config['n_critic'])
 
     # 2 INIT LOGGER
-    logger = TensorBoardLogger(save_dir="log_spvugan", name='AVIID1', version=0)
+    logger = TensorBoardLogger(save_dir="log_spvugan", name='AVIID1_semD', version=0)
 
     # 3 INIT TRAINER WITH LOGGER
     trainer = Trainer(
