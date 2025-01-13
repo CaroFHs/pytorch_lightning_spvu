@@ -15,7 +15,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from torch.amp import GradScaler, autocast
 
 import yaml
-# from vugan.sed import CLIP_Semantic_extractor
+from vugan.sed import CLIP_Semantic_extractor
 from TransUNet import TransUNet_G, DiscriminatorManager
 from dataset.thermal_dataset import CustomDatasetDataLoader
 from losses.GANLoss import GANLoss
@@ -123,8 +123,11 @@ class Discriminator(nn.Module):
             )
         self.which_model_netD = which_model_netD
 
-    def forward(self, x):
-        return self.netD(x)
+    def forward(self, x, semantic):
+        if self.which_model_netD in {'sed_p', 'sed_u'}:
+            return self.netD(x, semantic)
+        else:
+            return self.netD(x)
     
 class GAN(LightningModule):
 
@@ -154,6 +157,10 @@ class GAN(LightningModule):
             which_model_netD=D_config['which_model_netD']
         )
         # print(self.discriminator)
+        self.sem_extractor = CLIP_Semantic_extractor()
+        for param in self.sem_extractor.parameters():
+            param.requires_grad = False
+        self.sem_extractor.eval()
 
         # optimizer
         self.optimizer_type = training_config['optimizer_type']
@@ -185,6 +192,8 @@ class GAN(LightningModule):
         if torch.isnan(target_imgs).any() or torch.isinf(target_imgs).any():
             raise ValueError("Target_imgs nput contains NaN or Inf values")
 
+        # 语义提取
+        real_semantic = self.sem_extractor(target_imgs)
 
     #### train generator
         if batch_idx % self.n_critic == 0:
@@ -194,7 +203,7 @@ class GAN(LightningModule):
             
             # label_g = torch.ones(generated_imgs.size(0), 1)
             # label_g = label_g.type_as(generated_imgs)
-            fake_g_pred = self.discriminator(generated_imgs) # 判别器输出
+            fake_g_pred = self.discriminator(generated_imgs, real_semantic) # 判别器输出
             Ggan_loss =  self.adversarial_loss(fake_g_pred, True, is_disc=False)# 生成器gan损失
             gen_losses = self.loss_manager.compute_losses(source_imgs, generated_imgs, target_imgs) # 生成损失
             total_g_loss = Ggan_loss + gen_losses['total_loss'] # 总损失
@@ -230,13 +239,13 @@ class GAN(LightningModule):
             # 对于真实图像
             # real = torch.ones(target_imgs.size(0), 1) # 创建一个与输入图片 imgs 批量大小一致的全 1 张量，作为真实标签
             # real = real.type_as(target_imgs) # 确保 valid 的数据类型与输入图片一致
-            real_d_pred = self.discriminator(target_imgs) # 判别器输出
+            real_d_pred = self.discriminator(target_imgs, real_semantic) # 判别器输出
             real_loss = self.adversarial_loss(real_d_pred, True, is_disc=True) # 判别器对真实样本 imgs 的预测结果与真实标签 valid 之间的损失
 
             # 对于生成图像
             # fake = torch.zeros(generated_imgs.size(0), 1)
             # fake = fake.type_as(generated_imgs)
-            fake_d_pred = self.discriminator(generated_imgs) # 判别器输出
+            fake_d_pred = self.discriminator(generated_imgs, real_semantic) # 判别器输出
             fake_loss = self.adversarial_loss(fake_d_pred, False, is_disc=True)
 
             # 判别器损失
@@ -255,12 +264,12 @@ class GAN(LightningModule):
             # 记录生成图像
             sample_imgs = generated_imgs[:3]
             grid = torchvision.utils.make_grid(tensor=sample_imgs, 
-                                            nrow=3, normalize=True, value_range=(-1,1), scale_each=True)
+                                            nrow=3, normalize=True, value_range=(0,1), scale_each=True)
             self.logger.experiment.add_image('img_gen', grid, self.current_epoch) # 原为self.current_epoch
             # 记录真实图像
             targ_imgs = target_imgs[:3]
             grid = torchvision.utils.make_grid(tensor=targ_imgs, 
-                                            nrow=3, normalize=True, value_range=(-1,1), scale_each=True)
+                                            nrow=3, normalize=True, value_range=(0,1), scale_each=True)
             self.logger.experiment.add_image('img_real', grid, self.current_epoch)
 
             # real_validity = self.discriminator(target_imgs)

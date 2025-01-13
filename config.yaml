@@ -30,7 +30,7 @@ loss:
   mSSIM_loss: 0
   vgg_loss: 0.5
   hwt_loss: 0
-  infoNCE: 5
+  infoNCE: 2
 ganloss:
   Gganloss_weight: 1.0
   Dganloss_weight: 10

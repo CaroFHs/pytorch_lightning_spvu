@@ -19,20 +19,20 @@ class CLIP_Semantic_extractor(ModifiedResNet):
         super(CLIP_Semantic_extractor, self).__init__(layers=layers, output_dim=output_dim, heads=heads)
 
         ckpt = 'RN50' if path is None else path
-
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if pretrained:
-            model, preprocess = clip.load(ckpt, device='cpu') # 加载CLIP 模型，（另一个是转换（transform）函数）
+            model, preprocess = clip.load(ckpt, device=device) # 加载CLIP 模型，（另一个是转换（transform）函数）
         
         self.load_state_dict(model.visual.state_dict()) # 加载预训练模型的视觉编码器部分的权重
 
         # 注册两个缓冲区 mean 和 std，分别表示图像归一化的均值和标准差（一般来自于 ImageNet 数据集），用于预训练模型的标准化操作
         self.register_buffer(
             'mean',
-            torch.Tensor([0.48145466, 0.4578275, 0.40821073]).view(1, 3, 1, 1)
+            torch.Tensor([0.48145466, 0.4578275, 0.40821073]).view(1, 3, 1, 1).to(device)
         )
         self.register_buffer(
             'std',
-            torch.Tensor([0.26862954, 0.26130258, 0.27577711]).view(1, 3, 1, 1)
+            torch.Tensor([0.26862954, 0.26130258, 0.27577711]).view(1, 3, 1, 1).to(device)
         )
         self.requires_grad_(False)
 

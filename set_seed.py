@@ -25,6 +25,6 @@ def setup_system(seed, cudnn_benchmark=False, cudnn_deterministic=True)->None:
     
     os.environ['PYTHONHASHSEED'] = str(seed)
     os.environ['CUBLAS_WORKSPACE_CONFIG']=':4096:8'
-    torch.use_deterministic_algorithms(True)
+    torch.use_deterministic_algorithms(True, warn_only=True)
     print('seed = ', seed)
 

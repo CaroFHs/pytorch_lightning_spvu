@@ -134,9 +134,9 @@ class DiscriminatorManager(LightningModule):
             raise NotImplementedError('Discriminator model name [%s] is not recognized' %
                                     which_model_netD)
         
-    def forward(self, x, semantic):
-        if self.which_model_netD in {'sed_p', 'sed_u'}:
-            return self.netD(x, semantic)
-        else:
+    def forward(self, x):
+        # if self.which_model_netD in {'sed_p', 'sed_u'}:
+        #     return self.netD(x, semantic)
+        # else:
             return self.netD(x)
     
