@@ -60,6 +60,7 @@ class infoNCE(nn.Module):
     def __init__(self):
         super(infoNCE, self).__init__()
         self.clipmodel = CLIP_Semantic_extractor()
+        # self.clipmodel.eval()
         self.infonce = InfoNCELoss()
     def forward(self, source, fake, real):
         fake_sem = self.clipmodel(fake)

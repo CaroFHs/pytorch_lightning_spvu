@@ -19,7 +19,7 @@ training:
   n_critic: 2
   lambda_gp: 10
 
-  batch_size: 12
+  batch_size: 6
   epochs: 100
   nThreads: 16
 
@@ -38,14 +38,14 @@ ganloss:
 data:
 
   ## 数据集图像文件路径
-  dataroot: '/media/dg/D/DATASET/AVIID/AVIID1-paired-8/AVIID1_vis_ir' # AVIID1
-  # dataroot: '/media/dg/D/DATASET/VEDAI' # VEDAI
+  # dataroot: '/media/dg/D/DATASET/AVIID/AVIID1-paired-8/AVIID1_vis_ir' # AVIID1
+  dataroot: '/media/dg/D/DATASET/VEDAI' # VEDAI
   # dataroot: '/media/dg/D/DATASET/KAIST/VIDEO_SETS' # KAIST
 
   ## 数据集加载路径（原text_path）：aviid1，vedai，kaist
-  dataset_files: '/media/dg/D/Py_Project/pytorch_lightning_spvugan/dataset/dataset_files/aviid1' # VEDAI
+  dataset_files: '/media/dg/D/Py_Project/pytorch_lightning_spvugan/dataset/dataset_files/vedai' # VEDAI
 
-  dataset_mode: 'AVIID1' # 数据集模式，'AVIID1','VEDAI','KAIST'
+  dataset_mode: 'VEDAI' # 数据集模式，'AVIID1','VEDAI','KAIST'
   resize_or_crop: 'resize_and_crop'
   shuffle: True
   load_size: 512 # 缩放图像至此大小

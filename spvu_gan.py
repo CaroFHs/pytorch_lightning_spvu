@@ -365,7 +365,7 @@ def main() -> None:
     model = GAN(n_critic=training_config['n_critic'])
 
     # 2 INIT LOGGER
-    logger = TensorBoardLogger(save_dir="log_spvugan", name='AVIID1', version='D_infoNCE')
+    logger = TensorBoardLogger(save_dir="log_spvugan", name='VEDAI', version='unetD_infoNCEnew16')
 
     # 3 INIT TRAINER WITH LOGGER
     trainer = Trainer(
@@ -373,7 +373,7 @@ def main() -> None:
                 accelerator= 'cuda',
                 devices='auto',
                 max_epochs=training_config['epochs'], # 设置期望的训练轮数
-                precision='bf16-mixed', # 使用混合精度
+                precision='bf16-mixed', # 使用混合精度，bf16-mixed
                 check_val_every_n_epoch=1,  # 在每个 epoch 后验证一次
     )
 
@@ -382,7 +382,7 @@ def main() -> None:
 
     # # 4 TEST THE MODEL ON TEST SET
     # trainer.test(model, dataloaders=model.test_dataloader(),
-    #              ckpt_path='log_spvugan/AVIID1/version_0/checkpoints/epoch=99-step=6600.ckpt')  # 测试模型
+    #              ckpt_path='log_spvugan/VEDAI/unetD_infoNCEnew/checkpoints/epoch=99-step=14500.ckpt')  # 测试模型
 
 
 if __name__ == '__main__':
